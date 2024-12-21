@@ -1,70 +1,76 @@
-const video = document.getElementById('video');
-const playPauseBtn = document.getElementById('play-pause');
-const seekBar = document.getElementById('seek-bar');
-const muteBtn = document.getElementById('mute');
-const volumeSlider = document.getElementById('volume-slider');
-const fullscreenBtn = document.getElementById('fullscreen');
-const filePickerButton = document.getElementById('file-picker-button');
-const filePicker = document.getElementById('file-picker');
+document.addEventListener('DOMContentLoaded', () => {
+    const filePicker = document.getElementById('filePicker');
+    const fileInput = document.getElementById('fileInput');
+    const searchInput = document.getElementById('searchInput');
+    const videoList = document.getElementById('videoList');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const muteBtn = document.getElementById('muteBtn');
 
-// Play/Pause functionality
-playPauseBtn.addEventListener('click', () => {
-  if (video.paused) {
-    video.play();
-    playPauseBtn.textContent = 'Pause';
-  } else {
-    video.pause();
-    playPauseBtn.textContent = 'Play';
-  }
+    let videoFiles = [];
+
+    // Handle file selection
+    filePicker.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        videoFiles = Array.from(event.target.files);
+        displayVideoList(videoFiles);
+    });
+
+    // Handle search input
+    searchInput.addEventListener('input', (event) => {
+        const query = event.target.value.toLowerCase();
+        const filteredVideos = videoFiles.filter(file =>
+            file.name.toLowerCase().includes(query)
+        );
+        displayVideoList(filteredVideos);
+    });
+
+    // Display the list of video files
+    function displayVideoList(files) {
+        videoList.innerHTML = '';
+        files.forEach(file => {
+            const listItem = document.createElement('li');
+            listItem.textContent = file.name;
+            listItem.addEventListener('click', () => {
+                const fileURL = URL.createObjectURL(file);
+                videoPlayer.src = fileURL;
+                videoPlayer.play();
+                playPauseBtn.textContent = 'Pause';
+            });
+            videoList.appendChild(listItem);
+        });
+    }
+
+    // Play/Pause functionality
+    playPauseBtn.addEventListener('click', () => {
+        if (videoPlayer.paused || videoPlayer.ended) {
+            videoPlayer.play();
+            playPauseBtn.textContent = 'Pause';
+        } else {
+            videoPlayer.pause();
+            playPauseBtn.textContent = 'Play';
+        }
+    });
+
+    // Stop functionality
+    stopBtn.addEventListener('click', () => {
+        videoPlayer.pause();
+        videoPlayer.currentTime = 0;
+        playPauseBtn.textContent = 'Play';
+    });
+
+    // Mute/Unmute functionality
+    muteBtn.addEventListener('click', () => {
+        if (videoPlayer.muted) {
+            videoPlayer.muted = false;
+            muteBtn.textContent = 'Mute';
+        } else {
+            videoPlayer.muted = true;
+            muteBtn.textContent = 'Unmute';
+        }
+    });
 });
-
-// Update seek bar as video plays
-video.addEventListener('timeupdate', () => {
-  seekBar.value = (video.currentTime / video.duration) * 100;
-});
-
-// Seek functionality
-seekBar.addEventListener('input', () => {
-  video.currentTime = (seekBar.value / 100) * video.duration;
-});
-
-// Mute/Unmute functionality
-muteBtn.addEventListener('click', () => {
-  video.muted = !video.muted;
-  muteBtn.textContent = video.muted ? 'Unmute' : 'Mute';
-});
-
-// Volume control
-volumeSlider.addEventListener('input', () => {
-  video.volume = volumeSlider.value;
-});
-
-// Fullscreen functionality
-fullscreenBtn.addEventListener('click', () => {
-  if (video.requestFullscreen) {
-    video.requestFullscreen();
-  } else if (video.webkitRequestFullscreen) {
-    video.webkitRequestFullscreen();
-  } else if (video.mozRequestFullScreen) {
-    video.mozRequestFullScreen();
-  }
-});
-
-// File picker functionality
-filePickerButton.addEventListener('click', () => {
-  filePicker.click();
-});
-
-filePicker.addEventListener('change', (event) => {
-  const files = event.target.files;
-  if (files.length > 0) {
-    const fileURL = URL.createObjectURL(files[0]);
-    video.src = fileURL;
-    video.load();
-    video.play();
-    playPauseBtn.textContent = 'Pause';
-  }
-});
-`;
-
-export { htmlContent, cssContent, jsContent };

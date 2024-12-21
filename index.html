@@ -1,33 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sonnix Video Player</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <h1>Sonnix Player</h1>
-      <button id="file-picker-button">Browse Videos</button>
-      <input id="file-picker" type="file" accept="video/*" hidden multiple>
-    </header>
-
-    <div class="player-container">
-      <video id="video" class="video-player" controls>
-        <p>Your browser does not support the video tag.</p>
-      </video>
+    <div class="app-container">
+        <div class="sidebar">
+            <button id="filePicker">Select Videos</button>
+            <input type="file" id="fileInput" accept="video/*" multiple style="display: none;">
+            <input type="text" id="searchInput" placeholder="Search for videos...">
+            <ul id="videoList"></ul>
+        </div>
+        <div class="main-content">
+            <video id="videoPlayer" controls>
+                Your browser does not support the video tag.
+            </video>
+            <div class="controls">
+                <button id="playPauseBtn">Play</button>
+                <button id="stopBtn">Stop</button>
+                <button id="muteBtn">Mute</button>
+            </div>
+        </div>
     </div>
-
-    <div class="controls">
-      <button id="play-pause">Play</button>
-      <input id="seek-bar" type="range" value="0">
-      <button id="mute">Mute</button>
-      <input id="volume-slider" type="range" min="0" max="1" step="0.1" value="1">
-      <button id="fullscreen">Fullscreen</button>
-    </div>
-  </div>
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
