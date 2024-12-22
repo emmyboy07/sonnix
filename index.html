@@ -14,10 +14,17 @@
             <div class="sidebar-header">
                 <h1>Video Player</h1>
                 <button id="filePicker"><i class="fas fa-folder-open"></i> Select Videos</button>
-                <input type="file" id="fileInput" accept="video/*" multiple webkitdirectory style="display: none;">
+                <input type="file" id="fileInput" accept="video/*" multiple style="display: none;">
                 <button id="subtitlePicker"><i class="fas fa-file-alt"></i> Load Subtitles</button>
                 <input type="file" id="subtitleInput" accept=".vtt,.srt" style="display: none;">
                 <input type="text" id="searchInput" placeholder="Search for videos...">
+                <button id="savePlaylistBtn"><i class="fas fa-save"></i> Save Playlist</button>
+                <button id="loadPlaylistBtn"><i class="fas fa-folder-open"></i> Load Playlist</button>
+                <select id="themeSelect">
+                    <option value="light-theme">Light</option>
+                    <option value="dark-theme">Dark</option>
+                    <option value="custom-theme">Custom</option>
+                </select>
             </div>
             <ul id="videoList" class="playlist"></ul>
         </div>
@@ -41,11 +48,13 @@
                 </select>
                 <button id="fullscreenBtn" class="control-btn"><i class="fas fa-expand"></i></button>
                 <button id="pipBtn" class="control-btn"><i class="fas fa-picture-in-picture"></i></button>
+                <button id="bookmarkBtn" class="control-btn"><i class="fas fa-bookmark"></i></button>
                 <button id="toggleTheme" class="control-btn"><i class="fas fa-adjust"></i></button>
             </div>
             <div class="progress-container">
                 <div id="progressBar" class="progress-bar"></div>
             </div>
+            <ul id="bookmarkList" class="bookmark-list"></ul>
         </div>
     </div>
     <script src="script.js"></script>

@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const playbackRateControl = document.getElementById('playbackRateControl');
     const toggleThemeBtn = document.getElementById('toggleTheme');
     const pipBtn = document.getElementById('pipBtn');
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    const bookmarkList = document.getElementById('bookmarkList');
+    const savePlaylistBtn = document.getElementById('savePlaylistBtn');
+    const loadPlaylistBtn = document.getElementById('loadPlaylistBtn');
+    const themeSelect = document.getElementById('themeSelect');
 
     let videoFiles = [];
 
@@ -28,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', (event) => {
         videoFiles = Array.from(event.target.files);
         displayVideoList(videoFiles);
+        saveToLocalStorage('videoFiles', videoFiles.map(file => file.name));
     });
 
     // Handle subtitle file selection
@@ -54,25 +60,138 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Display the list of video files
-    function displayVideoList(files) {
+    async function displayVideoList(files) {
         videoList.innerHTML = '';
-        files.forEach(file => {
+        for (const file of files) {
             const listItem = document.createElement('li');
-            listItem.textContent = file.name;
+            const thumbnail = await generateThumbnail(file);
+            listItem.innerHTML = `<img src="${thumbnail}" alt="Thumbnail"> ${file.name}`;
             listItem.addEventListener('click', () => {
                 const fileURL = URL.createObjectURL(file);
                 videoPlayer.src = fileURL;
-                videoPlayer.play();
+                videoPlayer.play().catch(error => console.error('Error playing video:', error));
                 playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                saveToLocalStorage('currentVideo', file.name);
+                loadBookmarks();
             });
             videoList.appendChild(listItem);
+        }
+    }
+
+    // Generate thumbnail for video
+    function generateThumbnail(videoFile) {
+        return new Promise((resolve) => {
+            const thumbnailCanvas = document.createElement('canvas');
+            const thumbnailContext = thumbnailCanvas.getContext('2d');
+            const videoElement = document.createElement('video');
+
+            videoElement.src = URL.createObjectURL(videoFile);
+            videoElement.addEventListener('loadeddata', () => {
+                thumbnailCanvas.width = videoElement.videoWidth / 10;
+                thumbnailCanvas.height = videoElement.videoHeight / 10;
+                thumbnailContext.drawImage(videoElement, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
+                resolve(thumbnailCanvas.toDataURL());
+            });
         });
     }
+
+    // Save to LocalStorage
+    function saveToLocalStorage(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    // Get from LocalStorage
+    function getFromLocalStorage(key) {
+        return JSON.parse(localStorage.getItem(key));
+    }
+
+    // Load playback history
+    function loadPlaybackHistory() {
+        const currentVideo = getFromLocalStorage('currentVideo');
+        const playbackHistory = getFromLocalStorage('playbackHistory') || {};
+        if (currentVideo && playbackHistory[currentVideo]) {
+            videoPlayer.currentTime = playbackHistory[currentVideo];
+        }
+    }
+
+    // Save playback history
+    videoPlayer.addEventListener('timeupdate', () => {
+        const currentVideo = getFromLocalStorage('currentVideo');
+        if (currentVideo) {
+            const playbackHistory = getFromLocalStorage('playbackHistory') || {};
+            playbackHistory[currentVideo] = videoPlayer.currentTime;
+            saveToLocalStorage('playbackHistory', playbackHistory);
+        }
+    });
+
+    // Load bookmarks for the current video
+    function loadBookmarks() {
+        const currentVideo = getFromLocalStorage('currentVideo');
+        const bookmarks = getFromLocalStorage('bookmarks') || {};
+        if (currentVideo && bookmarks[currentVideo]) {
+            displayBookmarks(bookmarks[currentVideo]);
+        }
+    }
+
+    // Display bookmarks
+    function displayBookmarks(bookmarks) {
+        bookmarkList.innerHTML = '';
+        bookmarks.forEach((time, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `Bookmark ${index + 1}: ${formatTime(time)}`;
+            listItem.addEventListener('click', () => {
+                videoPlayer.currentTime = time;
+                videoPlayer.play().catch(error => console.error('Error playing video:', error));
+            });
+            bookmarkList.appendChild(listItem);
+        });
+    }
+
+    // Add bookmark
+    bookmarkBtn.addEventListener('click', () => {
+        const currentVideo = getFromLocalStorage('currentVideo');
+        if (currentVideo) {
+            const bookmarks = getFromLocalStorage('bookmarks') || {};
+            if (!bookmarks[currentVideo]) bookmarks[currentVideo] = [];
+            bookmarks[currentVideo].push(videoPlayer.currentTime);
+            saveToLocalStorage('bookmarks', bookmarks);
+            displayBookmarks(bookmarks[currentVideo]);
+        }
+    });
+
+    // Format time for display
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    // Save playlist
+    savePlaylistBtn.addEventListener('click', () => {
+        const playlistName = prompt('Enter playlist name:');
+        if (playlistName) {
+            saveToLocalStorage(`playlist_${playlistName}`, videoFiles.map(file => file.name));
+        }
+    });
+
+    // Load playlist
+    loadPlaylistBtn.addEventListener('click', () => {
+        const playlistName = prompt('Enter playlist name:');
+        if (playlistName) {
+            const savedFiles = getFromLocalStorage(`playlist_${playlistName}`);
+            if (savedFiles) {
+                videoFiles = savedFiles.map(fileName => new File([], fileName));
+                displayVideoList(videoFiles);
+            } else {
+                alert('Playlist not found!');
+            }
+        }
+    });
 
     // Play/Pause functionality
     playPauseBtn.addEventListener('click', () => {
         if (videoPlayer.paused || videoPlayer.ended) {
-            videoPlayer.play();
+            videoPlayer.play().catch(error => console.error('Error playing video:', error));
             playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
         } else {
             videoPlayer.pause();
@@ -101,18 +220,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fullscreen functionality
     fullscreenBtn.addEventListener('click', () => {
         if (!document.fullscreenElement) {
-            videoPlayer.requestFullscreen();
+            videoPlayer.requestFullscreen().catch(error => console.error('Error entering fullscreen:', error));
         } else {
-            document.exitFullscreen();
+            document.exitFullscreen().catch(error => console.error('Error exiting fullscreen:', error));
         }
     });
 
     // Picture-in-Picture functionality
     pipBtn.addEventListener('click', () => {
         if (document.pictureInPictureElement) {
-            document.exitPictureInPicture();
+            document.exitPictureInPicture().catch(error => console.error('Error exiting PiP:', error));
         } else {
-            videoPlayer.requestPictureInPicture();
+            videoPlayer.requestPictureInPicture().catch(error => console.error('Error entering PiP:', error));
         }
     });
 
@@ -139,6 +258,21 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleThemeBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark-theme');
         document.body.classList.toggle('light-theme');
+        saveToLocalStorage('theme', document.body.classList.contains('dark-theme') ? 'dark-theme' : 'light-theme');
+    });
+
+    // Load theme from local storage
+    function loadTheme() {
+        const savedTheme = getFromLocalStorage('theme');
+        if (savedTheme) {
+            document.body.classList.add(savedTheme);
+        }
+    }
+
+    themeSelect.addEventListener('change', (event) => {
+        document.body.className = '';
+        document.body.classList.add(event.target.value);
+        saveToLocalStorage('theme', event.target.value);
     });
 
     // Keyboard shortcuts
@@ -169,4 +303,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
     });
+
+    // Load initial data
+    loadPlaybackHistory();
+    loadBookmarks();
+    loadTheme();
+
+    // Load video list from local storage
+    function loadVideoListFromLocalStorage() {
+        const savedFiles = getFromLocalStorage('videoFiles');
+        if (savedFiles) {
+            videoFiles = savedFiles.map(fileName => new File([], fileName));
+            displayVideoList(videoFiles);
+        }
+    }
+
+    // Load current video
+    function loadCurrentVideo() {
+        const currentVideo = getFromLocalStorage('currentVideo');
+        if (currentVideo) {
+            const videoFile = videoFiles.find(file => file.name === currentVideo);
+            if (videoFile) {
+                const fileURL = URL.createObjectURL(videoFile);
+                videoPlayer.src = fileURL;
+                videoPlayer.play().catch(error => console.error('Error playing video:', error));
+            }
+        }
+    }
+
+    loadVideoListFromLocalStorage();
+    loadCurrentVideo();
 });
