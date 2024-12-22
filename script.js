@@ -7,6 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const playPauseBtn = document.getElementById('playPauseBtn');
     const stopBtn = document.getElementById('stopBtn');
     const muteBtn = document.getElementById('muteBtn');
+    const volumeControl = document.getElementById('volumeControl');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const subtitlePicker = document.getElementById('subtitlePicker');
+    const subtitleInput = document.getElementById('subtitleInput');
+    const subtitleTrack = document.getElementById('subtitleTrack');
+    const progressContainer = document.querySelector('.progress-container');
+    const progressBar = document.getElementById('progressBar');
+    const playbackRateControl = document.getElementById('playbackRateControl');
+    const toggleThemeBtn = document.getElementById('toggleTheme');
+    const pipBtn = document.getElementById('pipBtn');
 
     let videoFiles = [];
 
@@ -18,6 +28,20 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', (event) => {
         videoFiles = Array.from(event.target.files);
         displayVideoList(videoFiles);
+    });
+
+    // Handle subtitle file selection
+    subtitlePicker.addEventListener('click', () => {
+        subtitleInput.click();
+    });
+
+    subtitleInput.addEventListener('change', (event) => {
+        const subtitleFile = event.target.files[0];
+        if (subtitleFile) {
+            const subtitleURL = URL.createObjectURL(subtitleFile);
+            subtitleTrack.src = subtitleURL;
+            subtitleTrack.mode = 'showing'; // Show subtitles by default
+        }
     });
 
     // Handle search input
@@ -39,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fileURL = URL.createObjectURL(file);
                 videoPlayer.src = fileURL;
                 videoPlayer.play();
-                playPauseBtn.textContent = 'Pause';
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
             });
             videoList.appendChild(listItem);
         });
@@ -49,10 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
     playPauseBtn.addEventListener('click', () => {
         if (videoPlayer.paused || videoPlayer.ended) {
             videoPlayer.play();
-            playPauseBtn.textContent = 'Pause';
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
         } else {
             videoPlayer.pause();
-            playPauseBtn.textContent = 'Play';
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         }
     });
 
@@ -60,17 +84,89 @@ document.addEventListener('DOMContentLoaded', () => {
     stopBtn.addEventListener('click', () => {
         videoPlayer.pause();
         videoPlayer.currentTime = 0;
-        playPauseBtn.textContent = 'Play';
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
     });
 
     // Mute/Unmute functionality
     muteBtn.addEventListener('click', () => {
-        if (videoPlayer.muted) {
-            videoPlayer.muted = false;
-            muteBtn.textContent = 'Mute';
+        videoPlayer.muted = !videoPlayer.muted;
+        muteBtn.innerHTML = videoPlayer.muted ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    });
+
+    // Volume control functionality
+    volumeControl.addEventListener('input', (event) => {
+        videoPlayer.volume = event.target.value;
+    });
+
+    // Fullscreen functionality
+    fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            videoPlayer.requestFullscreen();
         } else {
-            videoPlayer.muted = true;
-            muteBtn.textContent = 'Unmute';
+            document.exitFullscreen();
+        }
+    });
+
+    // Picture-in-Picture functionality
+    pipBtn.addEventListener('click', () => {
+        if (document.pictureInPictureElement) {
+            document.exitPictureInPicture();
+        } else {
+            videoPlayer.requestPictureInPicture();
+        }
+    });
+
+    // Update progress bar
+    videoPlayer.addEventListener('timeupdate', () => {
+        const percentage = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+        progressBar.style.width = `${percentage}%`;
+    });
+
+    // Seek video
+    progressContainer.addEventListener('click', (event) => {
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const percentage = (clickX / rect.width);
+        videoPlayer.currentTime = percentage * videoPlayer.duration;
+    });
+
+    // Playback rate control
+    playbackRateControl.addEventListener('change', (event) => {
+        videoPlayer.playbackRate = event.target.value;
+    });
+
+    // Toggle dark/light theme
+    toggleThemeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark-theme');
+        document.body.classList.toggle('light-theme');
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (event) => {
+        switch (event.key) {
+            case ' ':
+                event.preventDefault();
+                playPauseBtn.click();
+                break;
+            case 'm':
+                muteBtn.click();
+                break;
+            case 'f':
+                fullscreenBtn.click();
+                break;
+            case 'p':
+                pipBtn.click();
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                volumeControl.value = Math.min(parseFloat(volumeControl.value) + 0.1, 1);
+                volumeControl.dispatchEvent(new Event('input'));
+                break;
+            case 'ArrowDown':
+                event.preventDefault();
+                volumeControl.value = Math.max(parseFloat(volumeControl.value) - 0.1, 0);
+                volumeControl.dispatchEvent(new Event('input'));
+                break;
         }
     });
 });
