@@ -8,11 +8,16 @@
     --hover-color: #2980b9;
     --theme-light-bg: #f5f5f5;
     --theme-light-text: #333;
-    --theme-dark-bg: #222;
-    --theme-dark-text: #f5f5f5;
+    --theme-dark-bg: #121212; /* Darker background for dark mode */
+    --theme-dark-text: #e0e0e0; /* Lighter text color for dark mode */
     --theme-custom-bg: #ffebcd;
     --theme-custom-text: #8b0000;
-    --highlight-color: #ff6347; /* Tomato color for highlights */
+    --highlight-color: #ff6347;
+    --button-text-color: white;
+    --button-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --dark-mode-button-bg: #1f1f1f; /* Darker button background for dark mode */
+    --dark-mode-control-bg: #1c1c1c; /* Darker control background for dark mode */
+    --dark-mode-hover-color: #3a3a3a; /* Hover color for dark mode */
 }
 
 .light-theme {
@@ -23,6 +28,10 @@
 .dark-theme {
     --background-color: var(--theme-dark-bg);
     --text-color: var(--theme-dark-text);
+    --sidebar-bg: #1e1e1e; /* Adjusted sidebar background for dark mode */
+    --control-bg: var(--dark-mode-control-bg);
+    --hover-color: var(--dark-mode-hover-color);
+    --button-bg: var(--dark-mode-button-bg);
 }
 
 .custom-theme {
@@ -68,18 +77,29 @@ body {
 
 button {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--button-text-color);
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     font-size: 14px;
     margin-bottom: 10px;
     width: 100%;
+    box-shadow: var(--button-shadow);
 }
 
 button:hover {
+    background-color: var(--hover-color);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme button {
+    background-color: var(--dark-mode-button-bg);
+    color: var(--theme-dark-text);
+}
+
+.dark-theme button:hover {
     background-color: var(--hover-color);
 }
 
@@ -90,6 +110,8 @@ button:hover {
     border-radius: 5px;
     margin-top: 10px;
     font-size: 14px;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 .playlist {
@@ -103,6 +125,7 @@ button:hover {
     cursor: pointer;
     transition: background-color 0.3s ease;
     border-radius: 5px;
+    background-color: var(--sidebar-bg); /* Ensure background color for visibility */
 }
 
 .playlist li img {
@@ -113,7 +136,8 @@ button:hover {
 }
 
 .playlist li:hover {
-    background-color: var(--highlight-color);
+    background-color: var(--hover-color);
+    color: white;
 }
 
 .main-content {
@@ -158,12 +182,23 @@ button:hover {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--button-shadow);
 }
 
 .control-btn:hover {
     background-color: var(--hover-color);
     color: white;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .control-btn {
+    background-color: var(--dark-mode-control-bg);
+    color: var(--theme-dark-text);
+}
+
+.dark-theme .control-btn:hover {
+    background-color: var(--hover-color);
 }
 
 .volume-slider, .playback-rate {
@@ -195,10 +230,12 @@ button:hover {
     cursor: pointer;
     transition: background-color 0.3s ease;
     border-radius: 5px;
+    background-color: var(--sidebar-bg); /* Ensure background color for visibility */
 }
 
 .bookmark-list li:hover {
     background-color: var(--highlight-color);
+    color: white;
 }
 
 #themeSelect {
@@ -208,6 +245,11 @@ button:hover {
     border-radius: 5px;
     margin-top: 10px;
     font-size: 14px;
+}
+
+.dark-theme #themeSelect {
+    background-color: var(--dark-mode-control-bg);
+    color: var(--theme-dark-text);
 }
 
 @media (max-width: 768px) {
