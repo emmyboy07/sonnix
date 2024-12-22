@@ -1,44 +1,4 @@
-:root {
-    --primary-color: #3498db;
-    --secondary-color: #2ecc71;
-    --background-color: #f5f5f5;
-    --text-color: #333;
-    --sidebar-bg: #fff;
-    --control-bg: #e0e0e0;
-    --hover-color: #2980b9;
-    --theme-light-bg: #f5f5f5;
-    --theme-light-text: #333;
-    --theme-dark-bg: #121212; /* Darker background for dark mode */
-    --theme-dark-text: #e0e0e0; /* Lighter text color for dark mode */
-    --theme-custom-bg: #ffebcd;
-    --theme-custom-text: #8b0000;
-    --highlight-color: #ff6347;
-    --button-text-color: white;
-    --button-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --dark-mode-button-bg: #1f1f1f; /* Darker button background for dark mode */
-    --dark-mode-control-bg: #1c1c1c; /* Darker control background for dark mode */
-    --dark-mode-hover-color: #3a3a3a; /* Hover color for dark mode */
-}
-
-.light-theme {
-    --background-color: var(--theme-light-bg);
-    --text-color: var(--theme-light-text);
-}
-
-.dark-theme {
-    --background-color: var(--theme-dark-bg);
-    --text-color: var(--theme-dark-text);
-    --sidebar-bg: #1e1e1e; /* Adjusted sidebar background for dark mode */
-    --control-bg: var(--dark-mode-control-bg);
-    --hover-color: var(--dark-mode-hover-color);
-    --button-bg: var(--dark-mode-button-bg);
-}
-
-.custom-theme {
-    --background-color: var(--theme-custom-bg);
-    --text-color: var(--theme-custom-text);
-}
-
+/* Reset and base styles */
 * {
     margin: 0;
     padding: 0;
@@ -46,100 +6,90 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
 }
 
+/* App container */
 .app-container {
     display: flex;
     height: 100vh;
 }
 
+/* Sidebar styles */
 .sidebar {
-    width: 300px;
-    background-color: var(--sidebar-bg);
+    width: 250px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
     padding: 20px;
     overflow-y: auto;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
 }
 
 .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
 .sidebar-header h1 {
     font-size: 24px;
-    margin-bottom: 15px;
-    color: var(--primary-color);
+    margin-bottom: 10px;
 }
 
-button {
-    background-color: var(--primary-color);
-    color: var(--button-text-color);
+.sidebar button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #34495e;
+    color: #ecf0f1;
     border: none;
-    padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    font-size: 14px;
-    margin-bottom: 10px;
-    width: 100%;
-    box-shadow: var(--button-shadow);
+    transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: var(--hover-color);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+.sidebar button:hover {
+    background-color: #2980b9;
 }
 
-.dark-theme button {
-    background-color: var(--dark-mode-button-bg);
-    color: var(--theme-dark-text);
-}
-
-.dark-theme button:hover {
-    background-color: var(--hover-color);
+.back-btn {
+    display: none; /* Back button hidden by default */
+    background: none;
+    border: none;
+    color: #ecf0f1;
+    font-size: 18px;
+    cursor: pointer;
 }
 
 #searchInput {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #ccc;
     border-radius: 5px;
-    margin-top: 10px;
-    font-size: 14px;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    margin-bottom: 20px;
 }
 
+/* Playlist styles */
 .playlist {
     list-style-type: none;
 }
 
 .playlist li {
-    display: flex;
-    align-items: center;
     padding: 10px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    border-radius: 5px;
-    background-color: var(--sidebar-bg); /* Ensure background color for visibility */
-}
-
-.playlist li img {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
-    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .playlist li:hover {
-    background-color: var(--hover-color);
-    color: white;
+    background-color: #34495e;
 }
 
+/* Main content styles */
 .main-content {
     flex-grow: 1;
     padding: 20px;
@@ -147,122 +97,253 @@ button:hover {
     flex-direction: column;
 }
 
-.video-container {
-    flex-grow: 1;
+.header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    background-color: #000;
-    border-radius: 10px;
-    overflow: hidden;
     margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 28px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.header-buttons button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.hamburger-menu {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Video container styles */
+.video-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
 }
 
 #videoPlayer {
-    max-width: 100%;
-    max-height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
+/* Controls styles */
 .controls {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    background-color: #34495e;
+    padding: 10px;
+    border-radius: 5px;
+    flex-wrap: wrap;
 }
 
 .control-btn {
-    background-color: var(--control-bg);
-    color: var(--text-color);
+    background-color: transparent;
     border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    color: #ecf0f1;
+    font-size: 18px;
     cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: var(--button-shadow);
+    margin-right: 10px;
+    margin-bottom: 5px;
+    transition: color 0.3s;
 }
 
 .control-btn:hover {
-    background-color: var(--hover-color);
-    color: white;
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    color: #3498db;
 }
 
-.dark-theme .control-btn {
-    background-color: var(--dark-mode-control-bg);
-    color: var(--theme-dark-text);
-}
-
-.dark-theme .control-btn:hover {
-    background-color: var(--hover-color);
-}
-
-.volume-slider, .playback-rate {
+.volume-slider {
     width: 100px;
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
 
+.playback-rate {
+    margin-left: auto;
+    padding: 5px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    border: none;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+/* Progress bar styles */
 .progress-container {
     width: 100%;
     height: 5px;
-    background-color: var(--control-bg);
-    border-radius: 5px;
-    overflow: hidden;
+    background-color: #bdc3c7;
+    margin-top: 10px;
+    cursor: pointer;
 }
 
 .progress-bar {
-    width: 0;
     height: 100%;
-    background-color: var(--secondary-color);
-    transition: width 0.1s linear;
+    background-color: #3498db;
+    width: 0;
 }
 
+/* Bookmark list styles */
 .bookmark-list {
     list-style-type: none;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .bookmark-list li {
-    padding: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #ecf0f1;
+    margin-bottom: 5px;
     border-radius: 5px;
-    background-color: var(--sidebar-bg); /* Ensure background color for visibility */
+    cursor: pointer;
 }
 
 .bookmark-list li:hover {
-    background-color: var(--highlight-color);
-    color: white;
+    background-color: #bdc3c7;
 }
 
-#themeSelect {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-top: 10px;
-    font-size: 14px;
+.remove-bookmark {
+    color: #e74c3c;
+    cursor: pointer;
 }
 
-.dark-theme #themeSelect {
-    background-color: var(--dark-mode-control-bg);
-    color: var(--theme-dark-text);
-}
-
+/* Responsive design */
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
     }
 
     .sidebar {
-        width: 100%;
-        max-height: 200px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 250px;
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .back-btn {
+        display: block; /* Show back button on small screens */
+    }
+
+    .main-content {
+        padding: 10px;
+    }
+
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .header-buttons {
+        flex-wrap: wrap;
+    }
+
+    .hamburger-menu {
+        display: block;
     }
 
     .controls {
-        flex-wrap: wrap;
+        justify-content: center;
     }
+
+    .control-btn, .volume-slider, .playback-rate {
+        margin-bottom: 10px;
+    }
+}
+
+/* Dark theme */
+.dark-theme {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+}
+
+.dark-theme .sidebar {
+    background-color: #34495e;
+}
+
+.dark-theme .main-content {
+    background-color: #2c3e50;
+}
+
+.dark-theme .controls {
+    background-color: #34495e;
+}
+
+.dark-theme .bookmark-list li {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+
+.dark-theme .bookmark-list li:hover {
+    background-color: #2c3e50;
+}
+
+.dark-theme .hamburger-menu {
+    color: #ecf0f1;
+}
+
+/* Light theme */
+.light-theme {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+}
+
+.light-theme .sidebar {
+    background-color: #bdc3c7;
+    color: #2c3e50;
+}
+
+.light-theme .main-content {
+    background-color: #ecf0f1;
+}
+
+.light-theme .controls {
+    background-color: #bdc3c7;
+}
+
+.light-theme .control-btn {
+    color: #2c3e50;
+}
+
+.light-theme .bookmark-list li {
+    background-color: #bdc3c7;
+    color: #2c3e50;
+}
+
+.light-theme .bookmark-list li:hover {
+    background-color: #ecf0f1;
+}
+
+.light-theme .hamburger-menu {
+    color: #2c3e50;
 }

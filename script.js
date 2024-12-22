@@ -1,336 +1,360 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const filePicker = document.getElementById('filePicker');
-    const fileInput = document.getElementById('fileInput');
-    const searchInput = document.getElementById('searchInput');
-    const videoList = document.getElementById('videoList');
     const videoPlayer = document.getElementById('videoPlayer');
+    const videoList = document.getElementById('videoList');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const stopBtn = document.getElementById('stopBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
     const muteBtn = document.getElementById('muteBtn');
     const volumeControl = document.getElementById('volumeControl');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const subtitlePicker = document.getElementById('subtitlePicker');
+    const pipBtn = document.getElementById('pipBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const playbackRateControl = document.getElementById('playbackRateControl');
+    const bookmarkBtn = document.getElementById('bookmarkBtn');
+    const progressBar = document.getElementById('progressBar');
+    const bookmarkList = document.getElementById('bookmarkList');
+    const searchInput = document.getElementById('searchInput');
+    const filePicker = document.getElementById('filePicker');
+    const fileInput = document.getElementById('fileInput');
+    const toggleTheme = document.getElementById('toggleTheme');
+    const subtitleBtn = document.getElementById('subtitleBtn');
     const subtitleInput = document.getElementById('subtitleInput');
     const subtitleTrack = document.getElementById('subtitleTrack');
-    const progressContainer = document.querySelector('.progress-container');
-    const progressBar = document.getElementById('progressBar');
-    const playbackRateControl = document.getElementById('playbackRateControl');
-    const toggleThemeBtn = document.getElementById('toggleTheme');
-    const pipBtn = document.getElementById('pipBtn');
-    const bookmarkBtn = document.getElementById('bookmarkBtn');
-    const bookmarkList = document.getElementById('bookmarkList');
     const savePlaylistBtn = document.getElementById('savePlaylistBtn');
     const loadPlaylistBtn = document.getElementById('loadPlaylistBtn');
-    const themeSelect = document.getElementById('themeSelect');
-
-    let videoFiles = [];
-
-    // Handle file selection
-    filePicker.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (event) => {
-        videoFiles = Array.from(event.target.files);
-        displayVideoList(videoFiles);
-        saveToLocalStorage('videoFiles', videoFiles.map(file => file.name));
-    });
-
-    // Handle subtitle file selection
-    subtitlePicker.addEventListener('click', () => {
-        subtitleInput.click();
-    });
-
-    subtitleInput.addEventListener('change', (event) => {
-        const subtitleFile = event.target.files[0];
-        if (subtitleFile) {
-            const subtitleURL = URL.createObjectURL(subtitleFile);
-            subtitleTrack.src = subtitleURL;
-            subtitleTrack.mode = 'showing'; // Show subtitles by default
-        }
-    });
-
-    // Handle search input
-    searchInput.addEventListener('input', (event) => {
-        const query = event.target.value.toLowerCase();
-        const filteredVideos = videoFiles.filter(file =>
-            file.name.toLowerCase().includes(query)
-        );
-        displayVideoList(filteredVideos);
-    });
-
-    // Display the list of video files
-    async function displayVideoList(files) {
-        videoList.innerHTML = '';
-        for (const file of files) {
-            const listItem = document.createElement('li');
-            const thumbnail = await generateThumbnail(file);
-            listItem.innerHTML = `<img src="${thumbnail}" alt="Thumbnail"> ${file.name}`;
-            listItem.addEventListener('click', () => {
-                const fileURL = URL.createObjectURL(file);
-                videoPlayer.src = fileURL;
-                videoPlayer.play().catch(error => console.error('Error playing video:', error));
-                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                saveToLocalStorage('currentVideo', file.name);
-                loadBookmarks();
-            });
-            videoList.appendChild(listItem);
-        }
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const backBtn = document.getElementById('backBtn');
+  
+    let playlist = [];
+    let currentVideoIndex = 0;
+    let isShuffled = false;
+    let isRepeating = false;
+  
+    // Load saved settings
+    loadSettings();
+  
+    // File selection
+    filePicker.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelection);
+  
+    function handleFileSelection(event) {
+      const files = event.target.files;
+      playlist = Array.from(files).filter(file => file.type.startsWith('video/'));
+      updatePlaylist();
+      if (playlist.length > 0) {
+        loadVideo(0);
+      }
     }
-
-    // Generate thumbnail for video
-    function generateThumbnail(videoFile) {
-        return new Promise((resolve) => {
-            const thumbnailCanvas = document.createElement('canvas');
-            const thumbnailContext = thumbnailCanvas.getContext('2d');
-            const videoElement = document.createElement('video');
-
-            videoElement.src = URL.createObjectURL(videoFile);
-            videoElement.addEventListener('loadeddata', () => {
-                thumbnailCanvas.width = videoElement.videoWidth / 10;
-                thumbnailCanvas.height = videoElement.videoHeight / 10;
-                thumbnailContext.drawImage(videoElement, 0, 0, thumbnailCanvas.width, thumbnailCanvas.height);
-                resolve(thumbnailCanvas.toDataURL());
-            });
+  
+    function updatePlaylist() {
+      videoList.innerHTML = '';
+      playlist.forEach((video, index) => {
+        const li = document.createElement('li');
+        li.textContent = video.name;
+        li.addEventListener('click', () => loadVideo(index));
+        videoList.appendChild(li);
+      });
+    }
+  
+    function loadVideo(index) {
+      if (index >= 0 && index < playlist.length) {
+        currentVideoIndex = index;
+        const videoURL = URL.createObjectURL(playlist[index]);
+        videoPlayer.src = videoURL;
+        videoPlayer.play().catch(error => {
+          console.error('Error playing video:', error);
+          alert('Error playing video. Please try another file.');
         });
+      }
     }
-
-    // Save to LocalStorage
-    function saveToLocalStorage(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    // Get from LocalStorage
-    function getFromLocalStorage(key) {
-        return JSON.parse(localStorage.getItem(key));
-    }
-
-    // Load playback history
-    function loadPlaybackHistory() {
-        const currentVideo = getFromLocalStorage('currentVideo');
-        const playbackHistory = getFromLocalStorage('playbackHistory') || {};
-        if (currentVideo && playbackHistory[currentVideo]) {
-            videoPlayer.currentTime = playbackHistory[currentVideo];
-        }
-    }
-
-    // Save playback history
-    videoPlayer.addEventListener('timeupdate', () => {
-        const currentVideo = getFromLocalStorage('currentVideo');
-        if (currentVideo) {
-            const playbackHistory = getFromLocalStorage('playbackHistory') || {};
-            playbackHistory[currentVideo] = videoPlayer.currentTime;
-            saveToLocalStorage('playbackHistory', playbackHistory);
-        }
-    });
-
-    // Load bookmarks for the current video
-    function loadBookmarks() {
-        const currentVideo = getFromLocalStorage('currentVideo');
-        const bookmarks = getFromLocalStorage('bookmarks') || {};
-        if (currentVideo && bookmarks[currentVideo]) {
-            displayBookmarks(bookmarks[currentVideo]);
-        }
-    }
-
-    // Display bookmarks
-    function displayBookmarks(bookmarks) {
-        bookmarkList.innerHTML = '';
-        bookmarks.forEach((time, index) => {
-            const listItem = document.createElement('li');
-            listItem.textContent = `Bookmark ${index + 1}: ${formatTime(time)}`;
-            listItem.addEventListener('click', () => {
-                videoPlayer.currentTime = time;
-                videoPlayer.play().catch(error => console.error('Error playing video:', error));
-            });
-            bookmarkList.appendChild(listItem);
+  
+    // Playback controls
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    stopBtn.addEventListener('click', stopVideo);
+    prevBtn.addEventListener('click', playPreviousVideo);
+    nextBtn.addEventListener('click', playNextVideo);
+    muteBtn.addEventListener('click', toggleMute);
+    volumeControl.addEventListener('input', changeVolume);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    pipBtn.addEventListener('click', togglePictureInPicture);
+    shuffleBtn.addEventListener('click', toggleShuffle);
+    repeatBtn.addEventListener('click', toggleRepeat);
+    playbackRateControl.addEventListener('change', changePlaybackRate);
+    bookmarkBtn.addEventListener('click', addBookmark);
+  
+    function togglePlayPause() {
+      if (videoPlayer.paused) {
+        videoPlayer.play().catch(error => {
+          console.error('Error playing video:', error);
+          alert('Error playing video. Please try another file.');
         });
-    }
-
-    // Add bookmark
-    bookmarkBtn.addEventListener('click', () => {
-        const currentVideo = getFromLocalStorage('currentVideo');
-        if (currentVideo) {
-            const bookmarks = getFromLocalStorage('bookmarks') || {};
-            if (!bookmarks[currentVideo]) bookmarks[currentVideo] = [];
-            bookmarks[currentVideo].push(videoPlayer.currentTime);
-            saveToLocalStorage('bookmarks', bookmarks);
-            displayBookmarks(bookmarks[currentVideo]);
-        }
-    });
-
-    // Format time for display
-    function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        seconds = Math.floor(seconds % 60);
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    }
-
-    // Save playlist
-    savePlaylistBtn.addEventListener('click', () => {
-        const playlistName = prompt('Enter playlist name:');
-        if (playlistName) {
-            saveToLocalStorage(`playlist_${playlistName}`, videoFiles.map(file => file.name));
-        }
-    });
-
-    // Load playlist
-    loadPlaylistBtn.addEventListener('click', () => {
-        const playlistName = prompt('Enter playlist name:');
-        if (playlistName) {
-            const savedFiles = getFromLocalStorage(`playlist_${playlistName}`);
-            if (savedFiles) {
-                videoFiles = savedFiles.map(fileName => new File([], fileName));
-                displayVideoList(videoFiles);
-            } else {
-                alert('Playlist not found!');
-            }
-        }
-    });
-
-    // Play/Pause functionality
-    playPauseBtn.addEventListener('click', () => {
-        if (videoPlayer.paused || videoPlayer.ended) {
-            videoPlayer.play().catch(error => console.error('Error playing video:', error));
-            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-        } else {
-            videoPlayer.pause();
-            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-        }
-    });
-
-    // Stop functionality
-    stopBtn.addEventListener('click', () => {
+      } else {
         videoPlayer.pause();
-        videoPlayer.currentTime = 0;
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-    });
-
-    // Mute/Unmute functionality
-    muteBtn.addEventListener('click', () => {
-        videoPlayer.muted = !videoPlayer.muted;
-        muteBtn.innerHTML = videoPlayer.muted ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
-    });
-
-    // Volume control functionality
-    volumeControl.addEventListener('input', (event) => {
-        videoPlayer.volume = event.target.value;
-    });
-
-    // Fullscreen functionality
-    fullscreenBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-            videoPlayer.requestFullscreen().catch(error => console.error('Error entering fullscreen:', error));
-        } else {
-            document.exitFullscreen().catch(error => console.error('Error exiting fullscreen:', error));
-        }
-    });
-
-    // Picture-in-Picture functionality
-    pipBtn.addEventListener('click', () => {
-        if (document.pictureInPictureElement) {
-            document.exitPictureInPicture().catch(error => console.error('Error exiting PiP:', error));
-        } else {
-            videoPlayer.requestPictureInPicture().catch(error => console.error('Error entering PiP:', error));
-        }
-    });
-
-    // Update progress bar
-    videoPlayer.addEventListener('timeupdate', () => {
-        const percentage = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-        progressBar.style.width = `${percentage}%`;
-    });
-
-    // Seek video
-    progressContainer.addEventListener('click', (event) => {
-        const rect = progressContainer.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const percentage = (clickX / rect.width);
-        videoPlayer.currentTime = percentage * videoPlayer.duration;
-    });
-
-    // Playback rate control
-    playbackRateControl.addEventListener('change', (event) => {
-        videoPlayer.playbackRate = event.target.value;
-    });
-
-    // Toggle dark/light theme
-    toggleThemeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        document.body.classList.toggle('light-theme');
-        saveToLocalStorage('theme', document.body.classList.contains('dark-theme') ? 'dark-theme' : 'light-theme');
-    });
-
-    // Load theme from local storage
-    function loadTheme() {
-        const savedTheme = getFromLocalStorage('theme');
-        if (savedTheme) {
-            document.body.classList.add(savedTheme);
-        }
+      }
+      updatePlayPauseButton();
     }
-
-    themeSelect.addEventListener('change', (event) => {
-        document.body.className = '';
-        document.body.classList.add(event.target.value);
-        saveToLocalStorage('theme', event.target.value);
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (event) => {
-        switch (event.key) {
-            case ' ':
-                event.preventDefault();
-                playPauseBtn.click();
-                break;
-            case 'm':
-                muteBtn.click();
-                break;
-            case 'f':
-                fullscreenBtn.click();
-                break;
-            case 'p':
-                pipBtn.click();
-                break;
-            case 'ArrowUp':
-                event.preventDefault();
-                volumeControl.value = Math.min(parseFloat(volumeControl.value) + 0.1, 1);
-                volumeControl.dispatchEvent(new Event('input'));
-                break;
-            case 'ArrowDown':
-                event.preventDefault();
-                volumeControl.value = Math.max(parseFloat(volumeControl.value) - 0.1, 0);
-                volumeControl.dispatchEvent(new Event('input'));
-                break;
-        }
-    });
-
-    // Load initial data
-    loadPlaybackHistory();
-    loadBookmarks();
-    loadTheme();
-
-    // Load video list from local storage
-    function loadVideoListFromLocalStorage() {
-        const savedFiles = getFromLocalStorage('videoFiles');
-        if (savedFiles) {
-            videoFiles = savedFiles.map(fileName => new File([], fileName));
-            displayVideoList(videoFiles);
-        }
+  
+    function updatePlayPauseButton() {
+      playPauseBtn.innerHTML = videoPlayer.paused ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
     }
-
-    // Load current video
-    function loadCurrentVideo() {
-        const currentVideo = getFromLocalStorage('currentVideo');
-        if (currentVideo) {
-            const videoFile = videoFiles.find(file => file.name === currentVideo);
-            if (videoFile) {
-                const fileURL = URL.createObjectURL(videoFile);
-                videoPlayer.src = fileURL;
-                videoPlayer.play().catch(error => console.error('Error playing video:', error));
-            }
-        }
+  
+    function stopVideo() {
+      videoPlayer.pause();
+      videoPlayer.currentTime = 0;
+      updatePlayPauseButton();
     }
-
-    loadVideoListFromLocalStorage();
-    loadCurrentVideo();
-});
+  
+    function playPreviousVideo() {
+      loadVideo(isShuffled ? Math.floor(Math.random() * playlist.length) : (currentVideoIndex - 1 + playlist.length) % playlist.length);
+    }
+  
+    function playNextVideo() {
+      loadVideo(isShuffled ? Math.floor(Math.random() * playlist.length) : (currentVideoIndex + 1) % playlist.length);
+    }
+  
+    function toggleMute() {
+      videoPlayer.muted = !videoPlayer.muted;
+      muteBtn.innerHTML = videoPlayer.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+      saveSettings();
+    }
+  
+    function changeVolume() {
+      videoPlayer.volume = volumeControl.value;
+      videoPlayer.muted = false;
+      muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+      saveSettings();
+    }
+  
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        videoPlayer.requestFullscreen().catch(error => {
+          console.error('Error attempting to enable fullscreen:', error);
+          alert('Unable to enter fullscreen mode. Please check your browser settings.');
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  
+    function togglePictureInPicture() {
+      if (document.pictureInPictureElement) {
+        document.exitPictureInPicture().catch(error => {
+          console.error('Error exiting Picture-in-Picture mode:', error);
+          alert('Unable to exit Picture-in-Picture mode. Please try again.');
+        });
+      } else {
+        videoPlayer.requestPictureInPicture().catch(error => {
+          console.error('Error entering Picture-in-Picture mode:', error);
+          alert('Unable to enter Picture-in-Picture mode. This feature may not be supported in your browser.');
+        });
+      }
+    }
+  
+    function toggleShuffle() {
+      isShuffled = !isShuffled;
+      shuffleBtn.classList.toggle('active');
+      saveSettings();
+    }
+  
+    function toggleRepeat() {
+      isRepeating = !isRepeating;
+      repeatBtn.classList.toggle('active');
+      saveSettings();
+    }
+  
+    function changePlaybackRate() {
+      videoPlayer.playbackRate = parseFloat(playbackRateControl.value);
+    }
+  
+    // Progress bar
+    videoPlayer.addEventListener('timeupdate', updateProgressBar);
+    progressBar.parentElement.addEventListener('click', seekVideo);
+  
+    function updateProgressBar() {
+      const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+  
+    function seekVideo(event) {
+      const seekTime = (event.offsetX / progressBar.parentElement.offsetWidth) * videoPlayer.duration;
+      videoPlayer.currentTime = seekTime;
+      saveSettings();
+    }
+  
+    // Bookmarks
+    function addBookmark() {
+      const bookmark = {
+        time: videoPlayer.currentTime,
+        text: `Bookmark at ${formatTime(videoPlayer.currentTime)}`
+      };
+      const li = createBookmarkElement(bookmark);
+      bookmarkList.appendChild(li);
+      saveSettings();
+    }
+  
+    function createBookmarkElement(bookmark) {
+      const li = document.createElement('li');
+      li.textContent = bookmark.text;
+      li.addEventListener('click', () => {
+        videoPlayer.currentTime = bookmark.time;
+      });
+      const removeBtn = document.createElement('span');
+      removeBtn.textContent = '×';
+      removeBtn.classList.add('remove-bookmark');
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bookmarkList.removeChild(li);
+        saveSettings();
+      });
+      li.appendChild(removeBtn);
+      return li;
+    }
+  
+    function formatTime(timeInSeconds) {
+      const minutes = Math.floor(timeInSeconds / 60);
+      const seconds = Math.floor(timeInSeconds % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+  
+    // Search functionality
+    searchInput.addEventListener('input', searchVideos);
+  
+    function searchVideos() {
+      const searchTerm = searchInput.value.toLowerCase();
+      Array.from(videoList.children).forEach(item => {
+        const videoName = item.textContent.toLowerCase();
+        item.style.display = videoName.includes(searchTerm) ? '' : 'none';
+      });
+    }
+  
+    // Theme toggle
+    toggleTheme.addEventListener('click', () => {
+      document.body.classList.toggle('dark-theme');
+      document.body.classList.toggle('light-theme');
+      saveSettings();
+    });
+  
+    // Subtitle support
+    subtitleBtn.addEventListener('click', () => subtitleInput.click());
+    subtitleInput.addEventListener('change', handleSubtitleSelection);
+  
+    function handleSubtitleSelection(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          subtitleTrack.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  
+    // Save and load playlist
+    savePlaylistBtn.addEventListener('click', savePlaylist);
+    loadPlaylistBtn.addEventListener('click', loadPlaylist);
+  
+    function savePlaylist() {
+      const playlistData = playlist.map(file => file.name);
+      saveToLocalStorage('savedPlaylist', playlistData);
+    }
+  
+    function loadPlaylist() {
+      const savedPlaylist = getFromLocalStorage('savedPlaylist');
+      if (savedPlaylist) {
+        playlist = savedPlaylist.map(fileName => new File([], fileName));
+        updatePlaylist();
+        if (playlist.length > 0) {
+          loadVideo(0);
+        }
+      }
+    }
+  
+    // Error handling for video playback
+    videoPlayer.addEventListener('error', (e) => {
+      console.error('Video error:', videoPlayer.error);
+      alert(`Error playing video: ${videoPlayer.error.message}`);
+    });
+  
+    // Auto-play next video
+    videoPlayer.addEventListener('ended', () => {
+      if (isRepeating) {
+        videoPlayer.play().catch(error => {
+          console.error('Error replaying video:', error);
+          alert('Error replaying video. Please try another file.');
+        });
+      } else {
+        playNextVideo();
+      }
+    });
+  
+    // Memory functions
+    function saveSettings() {
+      const settings = {
+        volume: videoPlayer.volume,
+        muted: videoPlayer.muted,
+        isShuffled,
+        isRepeating,
+        theme: document.body.classList.contains('dark-theme') ? 'dark-theme' : 'light-theme',
+        bookmarks: Array.from(bookmarkList.children).map(li => ({
+          time: parseFloat(li.querySelector('.remove-bookmark').getAttribute('data-time')),
+          text: li.textContent
+        }))
+      };
+      saveToLocalStorage('videoPlayerSettings', settings);
+    }
+  
+    function loadSettings() {
+      const settings = getFromLocalStorage('videoPlayerSettings');
+      if (settings) {
+        videoPlayer.volume = settings.volume;
+        videoPlayer.muted = settings.muted;
+        isShuffled = settings.isShuffled;
+        isRepeating = settings.isRepeating;
+        document.body.classList.add(settings.theme);
+        settings.bookmarks.forEach(bookmark => {
+          const li = createBookmarkElement(bookmark);
+          bookmarkList.appendChild(li);
+        });
+      }
+    }
+  
+    // Local storage functions
+    function saveToLocalStorage(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  
+    function getFromLocalStorage(key) {
+      return JSON.parse(localStorage.getItem(key));
+    }
+  
+    // Hamburger menu functionality
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      updateBackButtonVisibility();
+    });
+  
+    backBtn.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+    });
+  
+    function updateBackButtonVisibility() {
+      if (window.innerWidth <= 768) {
+        backBtn.style.display = 'block';
+      } else {
+        backBtn.style.display = 'none';
+        sidebar.classList.remove('open');  // Ensure sidebar is closed on larger screens
+      }
+    }
+  
+    window.addEventListener('resize', updateBackButtonVisibility);
+  
+    updateBackButtonVisibility();
+  
+    console.log('Smart Video Player initialized successfully.');
+  });
+  
+  // This code cannot be executed in this environment, but it would work in a browser context.
+  console.log('Script loaded successfully.');
