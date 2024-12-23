@@ -22,11 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtitleBtn = document.getElementById('subtitleBtn');
     const subtitleInput = document.getElementById('subtitleInput');
     const subtitleTrack = document.getElementById('subtitleTrack');
-    const savePlaylistBtn = document.getElementById('savePlaylistBtn');
-    const loadPlaylistBtn = document.getElementById('loadPlaylistBtn');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.sidebar');
     const backBtn = document.getElementById('backBtn');
+    const autoSearchBtn = document.getElementById('autoSearchBtn');
   
     let playlist = [];
     let currentVideoIndex = 0;
@@ -181,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function seekVideo(event) {
       const seekTime = (event.offsetX / progressBar.parentElement.offsetWidth) * videoPlayer.duration;
       videoPlayer.currentTime = seekTime;
-      saveSettings();
     }
   
     // Bookmarks
@@ -252,26 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   
-    // Save and load playlist
-    savePlaylistBtn.addEventListener('click', savePlaylist);
-    loadPlaylistBtn.addEventListener('click', loadPlaylist);
-  
-    function savePlaylist() {
-      const playlistData = playlist.map(file => file.name);
-      saveToLocalStorage('savedPlaylist', playlistData);
-    }
-  
-    function loadPlaylist() {
-      const savedPlaylist = getFromLocalStorage('savedPlaylist');
-      if (savedPlaylist) {
-        playlist = savedPlaylist.map(fileName => new File([], fileName));
-        updatePlaylist();
-        if (playlist.length > 0) {
-          loadVideo(0);
-        }
-      }
-    }
-  
     // Error handling for video playback
     videoPlayer.addEventListener('error', (e) => {
       console.error('Video error:', videoPlayer.error);
@@ -303,11 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
           text: li.textContent
         }))
       };
-      saveToLocalStorage('videoPlayerSettings', settings);
+      localStorage.setItem('videoPlayerSettings', JSON.stringify(settings));
     }
   
     function loadSettings() {
-      const settings = getFromLocalStorage('videoPlayerSettings');
+      const settings = JSON.parse(localStorage.getItem('videoPlayerSettings'));
       if (settings) {
         videoPlayer.volume = settings.volume;
         videoPlayer.muted = settings.muted;
@@ -319,15 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
           bookmarkList.appendChild(li);
         });
       }
-    }
-  
-    // Local storage functions
-    function saveToLocalStorage(key, value) {
-      localStorage.setItem(key, JSON.stringify(value));
-    }
-  
-    function getFromLocalStorage(key) {
-      return JSON.parse(localStorage.getItem(key));
     }
   
     // Hamburger menu functionality
@@ -351,10 +320,46 @@ document.addEventListener('DOMContentLoaded', () => {
   
     window.addEventListener('resize', updateBackButtonVisibility);
   
-    updateBackButtonVisibility();
+    // Auto-search functionality
+    autoSearchBtn.addEventListener('click', () => {
+      const searchTerm = prompt('Enter a search term for videos:');
+      if (searchTerm) {
+        searchVideosOnline(searchTerm);
+      }
+    });
   
+    async function searchVideosOnline(searchTerm) {
+      try {
+        const response = await fetch(`https://api.example.com/videos?search=${encodeURIComponent(searchTerm)}`);
+        const data = await response.json();
+        
+        // Clear existing playlist
+        playlist = [];
+        updatePlaylist();
+  
+        // Add found videos to playlist
+        data.videos.forEach(video => {
+          playlist.push({
+            name: video.title,
+            url: video.url
+          });
+        });
+  
+        updatePlaylist();
+        if (playlist.length > 0) {
+          loadVideo(0);
+        } else {
+          alert('No videos found for the given search term.');
+        }
+      } catch (error) {
+        console.error('Error searching for videos:', error);
+        alert('An error occurred while searching for videos. Please try again later.');
+      }
+    }
+  
+    // Initialize
+    updateBackButtonVisibility();
     console.log('Smart Video Player initialized successfully.');
   });
   
-  // This code cannot be executed in this environment, but it would work in a browser context.
-  console.log('Script loaded successfully.');
+  
